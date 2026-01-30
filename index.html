@@ -1,0 +1,2063 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ACCIO DATA - Employer Reporting Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f5f7fa;
+            color: #2c3e50;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1.5rem 2rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
+
+        .header p {
+            font-size: 0.9rem;
+            opacity: 0.9;
+            margin-top: 0.25rem;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .main-tabs {
+            display: flex;
+            gap: 0.5rem;
+            background: white;
+            padding: 1rem;
+            border-radius: 8px 8px 0 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            overflow-x: auto;
+        }
+
+        .main-tab {
+            padding: 0.75rem 1.5rem;
+            background: transparent;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            font-weight: 500;
+            color: #64748b;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+
+        .main-tab:hover {
+            background: #f1f5f9;
+            color: #334155;
+        }
+
+        .main-tab.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .sub-tabs {
+            display: none;
+            gap: 0.5rem;
+            background: white;
+            padding: 0.75rem 1rem;
+            border-bottom: 2px solid #e2e8f0;
+            flex-wrap: wrap;
+        }
+
+        .sub-tabs.active {
+            display: flex;
+        }
+
+        .sub-tab {
+            padding: 0.5rem 1rem;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            color: #475569;
+            transition: all 0.2s ease;
+        }
+
+        .sub-tab:hover {
+            background: #e2e8f0;
+            border-color: #cbd5e1;
+        }
+
+        .sub-tab.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .report-content {
+            display: none;
+            background: white;
+            padding: 2rem;
+            border-radius: 0 0 8px 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+
+        .report-content.active {
+            display: block;
+        }
+
+        .report-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid #f1f5f9;
+        }
+
+        .report-header h2 {
+            font-size: 1.5rem;
+            color: #1e293b;
+        }
+
+        .date-selector {
+            padding: 0.5rem 1rem;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            color: #475569;
+            background: white;
+            cursor: pointer;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .metric-card {
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            padding: 1.5rem;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .metric-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 0.25rem;
+        }
+
+        .metric-label {
+            font-size: 0.85rem;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .metric-change {
+            font-size: 0.85rem;
+            margin-top: 0.5rem;
+        }
+
+        .metric-change.positive {
+            color: #10b981;
+        }
+
+        .metric-change.negative {
+            color: #ef4444;
+        }
+
+        .chart-container {
+            background: #f8fafc;
+            padding: 2rem;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+        }
+
+        .chart-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 1.5rem;
+        }
+
+        .bar-chart {
+            display: flex;
+            align-items: flex-end;
+            gap: 1rem;
+            height: 200px;
+            padding: 1rem 0;
+        }
+
+        .bar {
+            flex: 1;
+            background: linear-gradient(to top, #667eea, #764ba2);
+            border-radius: 4px 4px 0 0;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .bar:hover {
+            opacity: 0.8;
+            transform: translateY(-4px);
+        }
+
+        .bar[style*="cursor: pointer"]:hover {
+            opacity: 0.7;
+            transform: translateY(-6px);
+            filter: brightness(1.1);
+        }
+
+        .bar-label {
+            position: absolute;
+            bottom: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.75rem;
+            color: #64748b;
+            white-space: nowrap;
+        }
+
+        .bar-value {
+            position: absolute;
+            top: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #1e293b;
+        }
+
+        .table-container {
+            overflow-x: auto;
+            margin-top: 2rem;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            background: #f1f5f9;
+            padding: 1rem;
+            text-align: left;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #475569;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        td {
+            padding: 1rem;
+            border-bottom: 1px solid #e2e8f0;
+            font-size: 0.9rem;
+            color: #334155;
+        }
+
+        tr:hover {
+            background: #f8fafc;
+        }
+
+        tr[style*="cursor: pointer"]:hover {
+            background: #e0e7ff;
+            transition: background 0.2s ease;
+        }
+
+        tr[style*="cursor: pointer"] td {
+            transition: all 0.2s ease;
+        }
+
+        tr[style*="cursor: pointer"]:hover td {
+            color: #4338ca;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-delayed {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        .status-complete {
+            background: #d1fae5;
+            color: #059669;
+        }
+
+        .status-pending {
+            background: #fef3c7;
+            color: #d97706;
+        }
+
+        .pie-chart {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        .pie-visual {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            background: conic-gradient(
+                #667eea 0deg 162deg,
+                #764ba2 162deg 270deg,
+                #f59e0b 270deg 324deg,
+                #ef4444 324deg 360deg
+            );
+        }
+
+        .pie-legend {
+            flex: 1;
+        }
+
+        .pie-legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+        }
+
+        .legend-label {
+            flex: 1;
+            font-size: 0.9rem;
+            color: #475569;
+        }
+
+        .legend-value {
+            font-weight: 600;
+            color: #1e293b;
+        }
+
+        .form-builder {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 2rem;
+        }
+
+        .field-list {
+            background: #f8fafc;
+            padding: 1.5rem;
+            border-radius: 8px;
+        }
+
+        .field-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem;
+            margin-bottom: 0.5rem;
+            background: white;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .field-item:hover {
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .config-panel {
+            background: #f8fafc;
+            padding: 1.5rem;
+            border-radius: 8px;
+        }
+
+        .config-section {
+            margin-bottom: 1.5rem;
+        }
+
+        .config-section h4 {
+            font-size: 0.9rem;
+            color: #475569;
+            margin-bottom: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .selected-field {
+            background: white;
+            padding: 0.75rem;
+            border-radius: 4px;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            border-left: 3px solid #667eea;
+        }
+
+        .filter-group {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+        }
+
+        .filter-group label {
+            display: block;
+            font-size: 0.85rem;
+            color: #64748b;
+            margin-bottom: 0.5rem;
+        }
+
+        .filter-group select,
+        .filter-group input {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid #cbd5e1;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: white;
+            color: #667eea;
+            border: 2px solid #667eea;
+        }
+
+        .btn-secondary:hover {
+            background: #f8fafc;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .insight-box {
+            background: #eff6ff;
+            border-left: 4px solid #3b82f6;
+            padding: 1.5rem;
+            border-radius: 4px;
+            margin-top: 2rem;
+        }
+
+        .insight-box h4 {
+            color: #1e40af;
+            margin-bottom: 0.75rem;
+            font-size: 1rem;
+        }
+
+        .insight-box ul {
+            list-style-position: inside;
+            color: #1e40af;
+        }
+
+        .insight-box li {
+            margin-bottom: 0.5rem;
+            line-height: 1.6;
+        }
+
+        .scenario-comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .scenario-card {
+            background: #f8fafc;
+            padding: 1.5rem;
+            border-radius: 8px;
+            border-top: 4px solid #667eea;
+        }
+
+        .scenario-card h3 {
+            font-size: 1.1rem;
+            margin-bottom: 1.5rem;
+            color: #1e293b;
+        }
+
+        .scenario-metric {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            background: white;
+            border-radius: 4px;
+            margin-bottom: 0.75rem;
+        }
+
+        .scenario-metric-label {
+            font-size: 0.9rem;
+            color: #64748b;
+        }
+
+        .scenario-metric-value {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #1e293b;
+        }
+
+        .impact-badge {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-left: 0.5rem;
+        }
+
+        .impact-positive {
+            background: #d1fae5;
+            color: #059669;
+        }
+
+        .impact-negative {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        @media (max-width: 768px) {
+            .metrics-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .form-builder {
+                grid-template-columns: 1fr;
+            }
+
+            .scenario-comparison {
+                grid-template-columns: 1fr;
+            }
+
+            .filter-group {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>ACCIO DATA</h1>
+        <p>End-User Reporting Analytics</p>
+    </div>
+
+    <div class="container">
+        <!-- Main Category Tabs -->
+        <div class="main-tabs">
+            <button class="main-tab active" onclick="switchMainTab(0)">End User Reporting</button>
+            <button class="main-tab" onclick="switchMainTab(1)">Compliance Monitoring</button>
+            <button class="main-tab" onclick="switchMainTab(2)">Impact Insights</button>
+            <button class="main-tab" onclick="switchMainTab(3)">Fair Chance Dashboard</button>
+        </div>
+
+        <!-- End User Reporting Sub-tabs -->
+        <div class="sub-tabs active" id="subtabs-0">
+            <button class="sub-tab active" onclick="switchReport(0, 0)">Delay Analysis</button>
+            <button class="sub-tab" onclick="switchReport(0, 1)">Performance Comparison</button>
+            <button class="sub-tab" onclick="switchReport(0, 2)">TAT by Search Type</button>
+            <button class="sub-tab" onclick="switchReport(0, 3)">Hit Ratios</button>
+            <button class="sub-tab" onclick="switchReport(0, 4)">Custom Report Builder</button>
+        </div>
+
+        <!-- Compliance Monitoring Sub-tabs -->
+        <div class="sub-tabs" id="subtabs-1">
+            <button class="sub-tab active" onclick="switchReport(1, 0)">Adjudicator Performance</button>
+            <button class="sub-tab" onclick="switchReport(1, 1)">Adjudication by Role</button>
+        </div>
+
+        <!-- Impact Insights Sub-tabs -->
+        <div class="sub-tabs" id="subtabs-2">
+            <button class="sub-tab active" onclick="switchReport(2, 0)">Decision Patterns</button>
+            <button class="sub-tab" onclick="switchReport(2, 1)">Funnel Impact Prediction</button>
+        </div>
+
+        <!-- Fair Chance Sub-tabs -->
+        <div class="sub-tabs" id="subtabs-3">
+            <button class="sub-tab active" onclick="switchReport(3, 0)">Justice-Impacted Metrics</button>
+        </div>
+
+        <!-- Report: Delay Analysis -->
+        <div class="report-content active" id="report-0-0">
+            <div class="report-header">
+                <h2>Delay Analysis Dashboard</h2>
+                <select class="date-selector">
+                    <option>Last 30 Days</option>
+                    <option>Last 90 Days</option>
+                    <option>Last 6 Months</option>
+                    <option>Last Year</option>
+                </select>
+            </div>
+
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <div class="metric-value">18hrs</div>
+                    <div class="metric-label">Avg Turnaround</div>
+                    <div class="metric-change negative">▼ 12%</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">47</div>
+                    <div class="metric-label">Delayed Reports</div>
+                    <div class="metric-change negative">▲ 8</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">3</div>
+                    <div class="metric-label">Court Closures</div>
+                    <div class="metric-change">—</div>
+                </div>
+            </div>
+
+            <div class="chart-container">
+                <div class="chart-title">Root Causes of Delays</div>
+                <div class="pie-chart">
+                    <div class="pie-visual"></div>
+                    <div class="pie-legend">
+                        <div class="pie-legend-item">
+                            <div class="legend-color" style="background: #667eea;"></div>
+                            <div class="legend-label">Candidate No Response</div>
+                            <div class="legend-value">45%</div>
+                        </div>
+                        <div class="pie-legend-item">
+                            <div class="legend-color" style="background: #764ba2;"></div>
+                            <div class="legend-label">Court Closures</div>
+                            <div class="legend-value">30%</div>
+                        </div>
+                        <div class="pie-legend-item">
+                            <div class="legend-color" style="background: #f59e0b;"></div>
+                            <div class="legend-label">Verification Delays</div>
+                            <div class="legend-value">15%</div>
+                        </div>
+                        <div class="pie-legend-item">
+                            <div class="legend-color" style="background: #ef4444;"></div>
+                            <div class="legend-label">Technical Issues</div>
+                            <div class="legend-value">10%</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="table-container">
+                <h3 style="margin-bottom: 1rem; color: #1e293b;">Recent Delayed Reports</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Report ID</th>
+                            <th>Status</th>
+                            <th>Reason</th>
+                            <th>Days Delayed</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>#12847</td>
+                            <td><span class="status-badge status-delayed">Delayed</span></td>
+                            <td>Awaiting Candidate</td>
+                            <td>5 days</td>
+                        </tr>
+                        <tr>
+                            <td>#12823</td>
+                            <td><span class="status-badge status-delayed">Delayed</span></td>
+                            <td>Court Closed</td>
+                            <td>4 days</td>
+                        </tr>
+                        <tr>
+                            <td>#12801</td>
+                            <td><span class="status-badge status-pending">Pending</span></td>
+                            <td>Verification Pending</td>
+                            <td>3 days</td>
+                        </tr>
+                        <tr>
+                            <td>#12799</td>
+                            <td><span class="status-badge status-delayed">Delayed</span></td>
+                            <td>Awaiting Candidate</td>
+                            <td>3 days</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Report: Performance Comparison -->
+        <div class="report-content" id="report-0-1">
+            <div class="report-header">
+                <h2>Performance Comparison</h2>
+                <select class="date-selector">
+                    <option selected>Last 90 Days</option>
+                    <option>Last 30 Days</option>
+                    <option>Last 6 Months</option>
+                    <option>Last Year</option>
+                </select>
+            </div>
+
+            <div class="chart-container">
+                <div class="chart-title">Average Turnaround Time by Applicant's Location or Work Location</div>
+                <div class="bar-chart">
+                    <div class="bar" style="height: 70%;">
+                        <span class="bar-value">14hrs</span>
+                        <span class="bar-label">Dallas, TX</span>
+                    </div>
+                    <div class="bar" style="height: 85%;">
+                        <span class="bar-value">17hrs</span>
+                        <span class="bar-label">Los Angeles, CA</span>
+                    </div>
+                    <div class="bar" style="height: 95%;">
+                        <span class="bar-value">19hrs</span>
+                        <span class="bar-label">Miami, FL</span>
+                    </div>
+                    <div class="bar" style="height: 60%;">
+                        <span class="bar-value">12hrs</span>
+                        <span class="bar-label">New York, NY</span>
+                    </div>
+                    <div class="bar" style="height: 75%;">
+                        <span class="bar-value">15hrs</span>
+                        <span class="bar-label">Chicago, IL</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="chart-container">
+                <div class="chart-title">Performance by Package Type</div>
+                <div class="bar-chart">
+                    <div class="bar" style="height: 55%;">
+                        <span class="bar-value">11hrs</span>
+                        <span class="bar-label">Basic</span>
+                    </div>
+                    <div class="bar" style="height: 80%;">
+                        <span class="bar-value">16hrs</span>
+                        <span class="bar-label">Standard</span>
+                    </div>
+                    <div class="bar" style="height: 100%;">
+                        <span class="bar-value">20hrs</span>
+                        <span class="bar-label">Comprehensive</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Report: TAT by Search Type -->
+        <div class="report-content" id="report-0-2">
+            <div class="report-header">
+                <h2>Turnaround Time by Search Type</h2>
+                <select class="date-selector">
+                    <option selected>Last 90 Days</option>
+                    <option>Last 30 Days</option>
+                    <option>Last 6 Months</option>
+                </select>
+            </div>
+
+            <!-- Breadcrumb Navigation -->
+            <div id="tat-breadcrumb" style="margin-bottom: 1.5rem; font-size: 0.9rem; color: #64748b;">
+                <span style="cursor: pointer; color: #667eea;" onclick="tatDrillDown('main')">All Search Types</span>
+                <span id="breadcrumb-level2" style="display: none;"> / <span style="cursor: pointer; color: #667eea;" onclick="tatDrillDown('detail')"></span></span>
+                <span id="breadcrumb-level3" style="display: none;"> / <span style="color: #1e293b;"></span></span>
+            </div>
+
+            <!-- Level 1: Main Search Types -->
+            <div id="tat-level-main" class="chart-container">
+                <div class="chart-title">TAT by Search Type - Click a bar to drill down</div>
+                <div class="bar-chart" style="height: 250px;">
+                    <div class="bar" style="height: 65%; cursor: pointer;" onclick="tatDrillDown('detail', 'criminal')">
+                        <span class="bar-value">13hrs</span>
+                        <span class="bar-label">Criminal</span>
+                    </div>
+                    <div class="bar" style="height: 80%; cursor: pointer;" onclick="tatDrillDown('detail', 'employment')">
+                        <span class="bar-value">16hrs</span>
+                        <span class="bar-label">Employment</span>
+                    </div>
+                    <div class="bar" style="height: 70%; cursor: pointer;" onclick="tatDrillDown('detail', 'education')">
+                        <span class="bar-value">14hrs</span>
+                        <span class="bar-label">Education</span>
+                    </div>
+                    <div class="bar" style="height: 45%; cursor: pointer;" onclick="tatDrillDown('detail', 'mvr')">
+                        <span class="bar-value">9hrs</span>
+                        <span class="bar-label">MVR</span>
+                    </div>
+                    <div class="bar" style="height: 35%; cursor: pointer;" onclick="tatDrillDown('detail', 'credit')">
+                        <span class="bar-value">7hrs</span>
+                        <span class="bar-label">Credit</span>
+                    </div>
+                </div>
+                
+                <div style="margin-top: 2rem;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Search Type</th>
+                                <th>Volume</th>
+                                <th>Avg TAT</th>
+                                <th>Median TAT</th>
+                                <th>Trend</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr style="cursor: pointer;" onclick="tatDrillDown('detail', 'criminal')">
+                                <td><strong>Criminal Records</strong></td>
+                                <td>1,247</td>
+                                <td>14.5 hrs</td>
+                                <td>13.2 hrs</td>
+                                <td><span class="metric-change positive">▼ 5%</span></td>
+                            </tr>
+                            <tr style="cursor: pointer;" onclick="tatDrillDown('detail', 'employment')">
+                                <td><strong>Employment Verification</strong></td>
+                                <td>892</td>
+                                <td>22.3 hrs</td>
+                                <td>20.1 hrs</td>
+                                <td><span class="metric-change negative">▲ 8%</span></td>
+                            </tr>
+                            <tr style="cursor: pointer;" onclick="tatDrillDown('detail', 'education')">
+                                <td><strong>Education Verification</strong></td>
+                                <td>654</td>
+                                <td>18.7 hrs</td>
+                                <td>17.5 hrs</td>
+                                <td><span class="metric-change positive">▼ 2%</span></td>
+                            </tr>
+                            <tr style="cursor: pointer;" onclick="tatDrillDown('detail', 'mvr')">
+                                <td><strong>MVR</strong></td>
+                                <td>423</td>
+                                <td>8.2 hrs</td>
+                                <td>7.8 hrs</td>
+                                <td><span class="metric-change positive">▼ 12%</span></td>
+                            </tr>
+                            <tr style="cursor: pointer;" onclick="tatDrillDown('detail', 'credit')">
+                                <td><strong>Credit Check</strong></td>
+                                <td>312</td>
+                                <td>6.5 hrs</td>
+                                <td>6.2 hrs</td>
+                                <td><span class="metric-change">—</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Level 2: Criminal Records Detail -->
+            <div id="tat-level-criminal" class="chart-container" style="display: none;">
+                <div class="chart-title">Criminal Records - Search Sub-Types</div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Sub-Type</th>
+                            <th>Volume</th>
+                            <th>Avg TAT</th>
+                            <th>Trend</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr style="cursor: pointer;" onclick="tatDrillDown('jurisdiction', 'county')">
+                            <td><strong>County Criminal</strong> →</td>
+                            <td>687</td>
+                            <td>12.3 hrs</td>
+                            <td><span class="metric-change positive">▼ 3%</span></td>
+                        </tr>
+                        <tr style="cursor: pointer;" onclick="tatDrillDown('jurisdiction', 'federal')">
+                            <td><strong>Federal Criminal</strong> →</td>
+                            <td>298</td>
+                            <td>18.7 hrs</td>
+                            <td><span class="metric-change negative">▲ 4%</span></td>
+                        </tr>
+                        <tr style="cursor: pointer;" onclick="tatDrillDown('jurisdiction', 'statewide')">
+                            <td><strong>Statewide Criminal</strong> →</td>
+                            <td>262</td>
+                            <td>14.2 hrs</td>
+                            <td><span class="metric-change positive">▼ 6%</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Level 2: Employment Verification Detail -->
+            <div id="tat-level-employment" class="chart-container" style="display: none;">
+                <div class="chart-title">Employment Verification - Details</div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Verification Type</th>
+                            <th>Volume</th>
+                            <th>Avg TAT</th>
+                            <th>Trend</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Automated Verification</td>
+                            <td>534</td>
+                            <td>8.5 hrs</td>
+                            <td><span class="metric-change positive">▼ 2%</span></td>
+                        </tr>
+                        <tr>
+                            <td>Manual HR Contact</td>
+                            <td>298</td>
+                            <td>36.7 hrs</td>
+                            <td><span class="metric-change negative">▲ 12%</span></td>
+                        </tr>
+                        <tr>
+                            <td>Third-Party Service</td>
+                            <td>60</td>
+                            <td>24.3 hrs</td>
+                            <td><span class="metric-change negative">▲ 5%</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Level 2: Education Verification Detail -->
+            <div id="tat-level-education" class="chart-container" style="display: none;">
+                <div class="chart-title">Education Verification - Details</div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Verification Type</th>
+                            <th>Volume</th>
+                            <th>Avg TAT</th>
+                            <th>Trend</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Degree Verification</td>
+                            <td>423</td>
+                            <td>16.8 hrs</td>
+                            <td><span class="metric-change positive">▼ 1%</span></td>
+                        </tr>
+                        <tr>
+                            <td>Certificate/License</td>
+                            <td>156</td>
+                            <td>22.5 hrs</td>
+                            <td><span class="metric-change negative">▲ 4%</span></td>
+                        </tr>
+                        <tr>
+                            <td>International Education</td>
+                            <td>75</td>
+                            <td>48.2 hrs</td>
+                            <td><span class="metric-change negative">▲ 8%</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Level 2: MVR Detail -->
+            <div id="tat-level-mvr" class="chart-container" style="display: none;">
+                <div class="chart-title">Motor Vehicle Records - Details</div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Record Type</th>
+                            <th>Volume</th>
+                            <th>Avg TAT</th>
+                            <th>Trend</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Standard MVR</td>
+                            <td>356</td>
+                            <td>6.2 hrs</td>
+                            <td><span class="metric-change positive">▼ 15%</span></td>
+                        </tr>
+                        <tr>
+                            <td>Commercial Driver (CDL)</td>
+                            <td>67</td>
+                            <td>14.8 hrs</td>
+                            <td><span class="metric-change negative">▲ 3%</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Level 2: Credit Check Detail -->
+            <div id="tat-level-credit" class="chart-container" style="display: none;">
+                <div class="chart-title">Credit Check - Details</div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Report Type</th>
+                            <th>Volume</th>
+                            <th>Avg TAT</th>
+                            <th>Trend</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Standard Credit Report</td>
+                            <td>267</td>
+                            <td>5.8 hrs</td>
+                            <td><span class="metric-change">—</span></td>
+                        </tr>
+                        <tr>
+                            <td>Credit Score Only</td>
+                            <td>45</td>
+                            <td>8.7 hrs</td>
+                            <td><span class="metric-change positive">▼ 2%</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Level 3: Jurisdiction Views -->
+            <div id="tat-level-county-jurisdiction" class="chart-container" style="display: none;">
+                <div class="chart-title">County Criminal - TAT by Jurisdiction</div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Jurisdiction</th>
+                            <th>Volume</th>
+                            <th>Avg TAT</th>
+                            <th>Median TAT</th>
+                            <th>Trend</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Texas - Dallas County</td>
+                            <td>156</td>
+                            <td>10.2 hrs</td>
+                            <td>9.5 hrs</td>
+                            <td><span class="metric-change positive">▼ 2%</span></td>
+                        </tr>
+                        <tr>
+                            <td>Texas - Harris County</td>
+                            <td>134</td>
+                            <td>11.8 hrs</td>
+                            <td>11.0 hrs</td>
+                            <td><span class="metric-change negative">▲ 3%</span></td>
+                        </tr>
+                        <tr>
+                            <td>California - Los Angeles</td>
+                            <td>98</td>
+                            <td>15.3 hrs</td>
+                            <td>14.5 hrs</td>
+                            <td><span class="metric-change negative">▲ 5%</span></td>
+                        </tr>
+                        <tr>
+                            <td>Florida - Miami-Dade</td>
+                            <td>87</td>
+                            <td>13.7 hrs</td>
+                            <td>12.8 hrs</td>
+                            <td><span class="metric-change positive">▼ 1%</span></td>
+                        </tr>
+                        <tr>
+                            <td>New York - New York County</td>
+                            <td>76</td>
+                            <td>9.5 hrs</td>
+                            <td>9.0 hrs</td>
+                            <td><span class="metric-change positive">▼ 4%</span></td>
+                        </tr>
+                        <tr>
+                            <td>Illinois - Cook County</td>
+                            <td>65</td>
+                            <td>12.4 hrs</td>
+                            <td>11.7 hrs</td>
+                            <td><span class="metric-change">—</span></td>
+                        </tr>
+                        <tr>
+                            <td>Arizona - Maricopa County</td>
+                            <td>43</td>
+                            <td>14.1 hrs</td>
+                            <td>13.2 hrs</td>
+                            <td><span class="metric-change negative">▲ 6%</span></td>
+                        </tr>
+                        <tr>
+                            <td>Other Counties</td>
+                            <td>28</td>
+                            <td>16.8 hrs</td>
+                            <td>15.5 hrs</td>
+                            <td><span class="metric-change negative">▲ 8%</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div id="tat-level-federal-jurisdiction" class="chart-container" style="display: none;">
+                <div class="chart-title">Federal Criminal - TAT by Jurisdiction</div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Jurisdiction</th>
+                            <th>Volume</th>
+                            <th>Avg TAT</th>
+                            <th>Median TAT</th>
+                            <th>Trend</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Northern District of Texas</td>
+                            <td>67</td>
+                            <td>16.5 hrs</td>
+                            <td>15.8 hrs</td>
+                            <td><span class="metric-change positive">▼ 2%</span></td>
+                        </tr>
+                        <tr>
+                            <td>Central District of California</td>
+                            <td>54</td>
+                            <td>19.2 hrs</td>
+                            <td>18.5 hrs</td>
+                            <td><span class="metric-change negative">▲ 5%</span></td>
+                        </tr>
+                        <tr>
+                            <td>Southern District of Florida</td>
+                            <td>48</td>
+                            <td>18.8 hrs</td>
+                            <td>17.9 hrs</td>
+                            <td><span class="metric-change negative">▲ 3%</span></td>
+                        </tr>
+                        <tr>
+                            <td>Southern District of New York</td>
+                            <td>42</td>
+                            <td>15.3 hrs</td>
+                            <td>14.7 hrs</td>
+                            <td><span class="metric-change positive">▼ 1%</span></td>
+                        </tr>
+                        <tr>
+                            <td>Northern District of Illinois</td>
+                            <td>38</td>
+                            <td>17.6 hrs</td>
+                            <td>16.8 hrs</td>
+                            <td><span class="metric-change negative">▲ 4%</span></td>
+                        </tr>
+                        <tr>
+                            <td>Other Federal Districts</td>
+                            <td>49</td>
+                            <td>21.4 hrs</td>
+                            <td>20.2 hrs</td>
+                            <td><span class="metric-change negative">▲ 7%</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div id="tat-level-statewide-jurisdiction" class="chart-container" style="display: none;">
+                <div class="chart-title">Statewide Criminal - TAT by Jurisdiction</div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>State</th>
+                            <th>Volume</th>
+                            <th>Avg TAT</th>
+                            <th>Median TAT</th>
+                            <th>Trend</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Texas</td>
+                            <td>78</td>
+                            <td>12.8 hrs</td>
+                            <td>12.0 hrs</td>
+                            <td><span class="metric-change positive">▼ 5%</span></td>
+                        </tr>
+                        <tr>
+                            <td>California</td>
+                            <td>56</td>
+                            <td>16.4 hrs</td>
+                            <td>15.5 hrs</td>
+                            <td><span class="metric-change negative">▲ 8%</span></td>
+                        </tr>
+                        <tr>
+                            <td>Florida</td>
+                            <td>43</td>
+                            <td>14.2 hrs</td>
+                            <td>13.5 hrs</td>
+                            <td><span class="metric-change positive">▼ 3%</span></td>
+                        </tr>
+                        <tr>
+                            <td>New York</td>
+                            <td>37</td>
+                            <td>11.7 hrs</td>
+                            <td>11.0 hrs</td>
+                            <td><span class="metric-change positive">▼ 7%</span></td>
+                        </tr>
+                        <tr>
+                            <td>Illinois</td>
+                            <td>29</td>
+                            <td>13.5 hrs</td>
+                            <td>12.8 hrs</td>
+                            <td><span class="metric-change">—</span></td>
+                        </tr>
+                        <tr>
+                            <td>Pennsylvania</td>
+                            <td>19</td>
+                            <td>15.8 hrs</td>
+                            <td>15.0 hrs</td>
+                            <td><span class="metric-change negative">▲ 4%</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Report: Hit Ratios -->
+        <div class="report-content" id="report-0-3">
+            <div class="report-header">
+                <h2>Hit Ratio by Search Type</h2>
+                <select class="date-selector">
+                    <option selected>Last 90 Days</option>
+                    <option>Last 30 Days</option>
+                    <option>Last 6 Months</option>
+                </select>
+            </div>
+
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <div class="metric-value">23.4%</div>
+                    <div class="metric-label">Overall Hit Ratio</div>
+                    <div class="metric-change positive">▲ 2.1%</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">18.7%</div>
+                    <div class="metric-label">Criminal Records</div>
+                    <div class="metric-change positive">▲ 1.5%</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">8.2%</div>
+                    <div class="metric-label">MVR</div>
+                    <div class="metric-change negative">▼ 0.5%</div>
+                </div>
+            </div>
+
+            <div class="chart-container">
+                <div class="chart-title">Hit Ratio by Search Type</div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Search Type</th>
+                            <th>Total Searches</th>
+                            <th>Hits</th>
+                            <th>Hit Ratio</th>
+                            <th>30-Day Trend</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Criminal - County</td>
+                            <td>2,847</td>
+                            <td>532</td>
+                            <td>18.7%</td>
+                            <td><span class="metric-change positive">▲ 1.5%</span></td>
+                        </tr>
+                        <tr>
+                            <td>Criminal - State</td>
+                            <td>1,923</td>
+                            <td>389</td>
+                            <td>20.2%</td>
+                            <td><span class="metric-change positive">▲ 0.8%</span></td>
+                        </tr>
+                        <tr>
+                            <td>Criminal - Federal</td>
+                            <td>456</td>
+                            <td>23</td>
+                            <td>5.0%</td>
+                            <td><span class="metric-change">—</span></td>
+                        </tr>
+                        <tr>
+                            <td>MVR</td>
+                            <td>1,234</td>
+                            <td>101</td>
+                            <td>8.2%</td>
+                            <td><span class="metric-change negative">▼ 0.5%</span></td>
+                        </tr>
+                        <tr>
+                            <td>Credit Check</td>
+                            <td>892</td>
+                            <td>267</td>
+                            <td>29.9%</td>
+                            <td><span class="metric-change positive">▲ 3.2%</span></td>
+                        </tr>
+                        <tr>
+                            <td>Sex Offender Registry</td>
+                            <td>2,456</td>
+                            <td>12</td>
+                            <td>0.5%</td>
+                            <td><span class="metric-change">—</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="chart-container">
+                <div class="chart-title">Hit Ratio Trend (Last 6 Months)</div>
+                <div class="bar-chart">
+                    <div class="bar" style="height: 70%;">
+                        <span class="bar-value">21%</span>
+                        <span class="bar-label">Aug</span>
+                    </div>
+                    <div class="bar" style="height: 75%;">
+                        <span class="bar-value">22%</span>
+                        <span class="bar-label">Sep</span>
+                    </div>
+                    <div class="bar" style="height: 72%;">
+                        <span class="bar-value">21.5%</span>
+                        <span class="bar-label">Oct</span>
+                    </div>
+                    <div class="bar" style="height: 78%;">
+                        <span class="bar-value">23%</span>
+                        <span class="bar-label">Nov</span>
+                    </div>
+                    <div class="bar" style="height: 80%;">
+                        <span class="bar-value">23.5%</span>
+                        <span class="bar-label">Dec</span>
+                    </div>
+                    <div class="bar" style="height: 82%;">
+                        <span class="bar-value">24%</span>
+                        <span class="bar-label">Jan</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Report: Custom Report Builder -->
+        <div class="report-content" id="report-0-4">
+            <div class="report-header">
+                <h2>Custom Report Builder</h2>
+            </div>
+
+            <div class="form-builder">
+                <div>
+                    <div class="field-list">
+                        <h3 style="margin-bottom: 1rem; color: #1e293b;">Available Fields</h3>
+                        <div class="field-item">
+                            <input type="checkbox" id="field1">
+                            <label for="field1">Report ID</label>
+                        </div>
+                        <div class="field-item">
+                            <input type="checkbox" id="field2">
+                            <label for="field2">Applicant Name</label>
+                        </div>
+                        <div class="field-item">
+                            <input type="checkbox" id="field3">
+                            <label for="field3">Employer Name</label>
+                        </div>
+                        <div class="field-item">
+                            <input type="checkbox" id="field4">
+                            <label for="field4">CRA Name</label>
+                        </div>
+                        <div class="field-item">
+                            <input type="checkbox" id="field5">
+                            <label for="field5">Package Type</label>
+                        </div>
+                        <div class="field-item">
+                            <input type="checkbox" id="field6">
+                            <label for="field6">Search Type</label>
+                        </div>
+                        <div class="field-item">
+                            <input type="checkbox" id="field7">
+                            <label for="field7">Status</label>
+                        </div>
+                        <div class="field-item">
+                            <input type="checkbox" id="field8">
+                            <label for="field8">Turnaround Time</label>
+                        </div>
+                        <div class="field-item">
+                            <input type="checkbox" id="field9">
+                            <label for="field9">Hit/No Hit</label>
+                        </div>
+                        <div class="field-item">
+                            <input type="checkbox" id="field10">
+                            <label for="field10">Jurisdiction</label>
+                        </div>
+                        <div class="field-item">
+                            <input type="checkbox" id="field11">
+                            <label for="field11">Date Ordered</label>
+                        </div>
+                        <div class="field-item">
+                            <input type="checkbox" id="field12">
+                            <label for="field12">Date Completed</label>
+                        </div>
+                        <div class="field-item">
+                            <input type="checkbox" id="field13">
+                            <label for="field13">Adjudication Result</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="config-panel">
+                        <div class="config-section">
+                            <h4>Selected Fields</h4>
+                            <div class="selected-field">1. Report ID</div>
+                            <div class="selected-field">2. Applicant Name</div>
+                            <div class="selected-field">3. Turnaround Time</div>
+                            <div class="selected-field">4. Search Type</div>
+                            <div class="selected-field">5. Status</div>
+                        </div>
+
+                        <div class="config-section">
+                            <h4>Filters</h4>
+                            <div class="filter-group">
+                                <div>
+                                    <label>Date Range</label>
+                                    <select>
+                                        <option>Last 30 Days</option>
+                                        <option>Last 90 Days</option>
+                                        <option>Last 6 Months</option>
+                                        <option>Last Year</option>
+                                        <option>Custom Range</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label>Package Type</label>
+                                    <select>
+                                        <option>All</option>
+                                        <option>Basic</option>
+                                        <option>Standard</option>
+                                        <option>Comprehensive</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label>Status</label>
+                                    <select>
+                                        <option>All</option>
+                                        <option>Complete</option>
+                                        <option>Pending</option>
+                                        <option>Delayed</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label>Jurisdiction</label>
+                                    <select>
+                                        <option>All</option>
+                                        <option>Texas</option>
+                                        <option>California</option>
+                                        <option>Florida</option>
+                                        <option>New York</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="config-section">
+                            <h4>Schedule & Delivery</h4>
+                            <div class="filter-group">
+                                <div>
+                                    <label>Schedule</label>
+                                    <select>
+                                        <option>Run Once</option>
+                                        <option>Daily</option>
+                                        <option>Weekly on Monday</option>
+                                        <option>Monthly</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label>Email To</label>
+                                    <input type="email" placeholder="user@company.com">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="button-group">
+                            <button class="btn btn-primary">Save Report</button>
+                            <button class="btn btn-secondary">Run Now</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Report: Adjudicator Performance -->
+        <div class="report-content" id="report-1-0">
+            <div class="report-header">
+                <h2>Adjudicator Performance</h2>
+                <select class="date-selector">
+                    <option>Last 30 Days</option>
+                    <option>Last 90 Days</option>
+                    <option>Last 6 Months</option>
+                </select>
+            </div>
+
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <div class="metric-value">1,247</div>
+                    <div class="metric-label">Total Decisions</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">1.2hrs</div>
+                    <div class="metric-label">Avg Decision Time</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">92%</div>
+                    <div class="metric-label">Meets Hiring Requirements</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">156</div>
+                    <div class="metric-label">Adverse Actions</div>
+                </div>
+            </div>
+
+            <div class="chart-container">
+                <div class="chart-title">Adjudicator Performance (Last 30 Days)</div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Adjudicator</th>
+                            <th>Decisions</th>
+                            <th>Avg Time</th>
+                            <th>Clear Rate</th>
+                            <th>Adverse Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Sarah Johnson</td>
+                            <td>342</td>
+                            <td>1.1 hrs</td>
+                            <td>94%</td>
+                            <td>21</td>
+                        </tr>
+                        <tr>
+                            <td>Michael Chen</td>
+                            <td>298</td>
+                            <td>1.3 hrs</td>
+                            <td>91%</td>
+                            <td>27</td>
+                        </tr>
+                        <tr>
+                            <td>Emily Rodriguez</td>
+                            <td>276</td>
+                            <td>1.0 hrs</td>
+                            <td>95%</td>
+                            <td>14</td>
+                        </tr>
+                        <tr>
+                            <td>David Kim</td>
+                            <td>189</td>
+                            <td>1.4 hrs</td>
+                            <td>89%</td>
+                            <td>21</td>
+                        </tr>
+                        <tr>
+                            <td>Jessica Martinez</td>
+                            <td>142</td>
+                            <td>1.2 hrs</td>
+                            <td>93%</td>
+                            <td>10</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Report: Adjudication by Role -->
+        <div class="report-content" id="report-1-1">
+            <div class="report-header">
+                <h2>Adjudication by Role & Location</h2>
+                <select class="date-selector">
+                    <option>Last 30 Days</option>
+                    <option>Last 90 Days</option>
+                    <option>Last 6 Months</option>
+                </select>
+            </div>
+
+            <div class="chart-container">
+                <div class="chart-title">Performance Across Different Roles</div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Role</th>
+                            <th>Total Screened</th>
+                            <th>Clear Rate</th>
+                            <th>Avg TAT</th>
+                            <th>Adverse Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Warehouse Associate</td>
+                            <td>456</td>
+                            <td>88%</td>
+                            <td>14.2 hrs</td>
+                            <td>55</td>
+                        </tr>
+                        <tr>
+                            <td>Delivery Driver</td>
+                            <td>387</td>
+                            <td>82%</td>
+                            <td>16.8 hrs</td>
+                            <td>70</td>
+                        </tr>
+                        <tr>
+                            <td>Customer Service Rep</td>
+                            <td>298</td>
+                            <td>94%</td>
+                            <td>12.5 hrs</td>
+                            <td>18</td>
+                        </tr>
+                        <tr>
+                            <td>Software Engineer</td>
+                            <td>156</td>
+                            <td>97%</td>
+                            <td>15.3 hrs</td>
+                            <td>5</td>
+                        </tr>
+                        <tr>
+                            <td>Manager</td>
+                            <td>124</td>
+                            <td>95%</td>
+                            <td>18.7 hrs</td>
+                            <td>6</td>
+                        </tr>
+                        <tr>
+                            <td>Healthcare Worker</td>
+                            <td>114</td>
+                            <td>91%</td>
+                            <td>21.2 hrs</td>
+                            <td>10</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="chart-container">
+                <div class="chart-title">Clear Rate by Location</div>
+                <div class="bar-chart">
+                    <div class="bar" style="height: 92%;">
+                        <span class="bar-value">92%</span>
+                        <span class="bar-label">Dallas</span>
+                    </div>
+                    <div class="bar" style="height: 88%;">
+                        <span class="bar-value">88%</span>
+                        <span class="bar-label">Austin</span>
+                    </div>
+                    <div class="bar" style="height: 95%;">
+                        <span class="bar-value">95%</span>
+                        <span class="bar-label">Houston</span>
+                    </div>
+                    <div class="bar" style="height: 85%;">
+                        <span class="bar-value">85%</span>
+                        <span class="bar-label">San Antonio</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Report: Decision Patterns -->
+        <div class="report-content" id="report-2-0">
+            <div class="report-header">
+                <h2>Team Decision Patterns & Analysis</h2>
+                <select class="date-selector">
+                    <option>Last 90 Days</option>
+                    <option>Last 30 Days</option>
+                    <option>Last 6 Months</option>
+                </select>
+            </div>
+
+            <div class="chart-container">
+                <div class="chart-title">90-Day Decision Flow</div>
+                <div style="display: flex; align-items: center; justify-content: space-around; padding: 2rem;">
+                    <div style="text-align: center;">
+                        <div style="font-size: 2.5rem; font-weight: 700; color: #667eea;">1,435</div>
+                        <div style="font-size: 0.9rem; color: #64748b; margin-top: 0.5rem;">Total Reports</div>
+                    </div>
+                    <div style="font-size: 2rem; color: #cbd5e1;">→</div>
+                    <div style="text-align: center;">
+                        <div style="font-size: 2.5rem; font-weight: 700; color: #10b981;">1,052</div>
+                        <div style="font-size: 0.9rem; color: #64748b; margin-top: 0.5rem;">Auto-Cleared</div>
+                    </div>
+                    <div style="font-size: 2rem; color: #cbd5e1;">→</div>
+                    <div style="text-align: center;">
+                        <div style="font-size: 2.5rem; font-weight: 700; color: #f59e0b;">279</div>
+                        <div style="font-size: 0.9rem; color: #64748b; margin-top: 0.5rem;">Manual Review</div>
+                    </div>
+                    <div style="font-size: 2rem; color: #cbd5e1;">→</div>
+                    <div style="text-align: center;">
+                        <div style="font-size: 2.5rem; font-weight: 700; color: #ef4444;">104</div>
+                        <div style="font-size: 0.9rem; color: #64748b; margin-top: 0.5rem;">Pre-Adverse Action</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="chart-container">
+                <div class="chart-title">Top Reasons for Adverse Actions</div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Reason</th>
+                            <th>Count</th>
+                            <th>Percentage</th>
+                            <th>Avg Time to Decision</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Violent Felony (< 7 years)</td>
+                            <td>32</td>
+                            <td>30.8%</td>
+                            <td>2.3 hrs</td>
+                        </tr>
+                        <tr>
+                            <td>Multiple Drug Offenses</td>
+                            <td>24</td>
+                            <td>23.1%</td>
+                            <td>1.8 hrs</td>
+                        </tr>
+                        <tr>
+                            <td>Theft/Fraud (Recent)</td>
+                            <td>18</td>
+                            <td>17.3%</td>
+                            <td>1.5 hrs</td>
+                        </tr>
+                        <tr>
+                            <td>Multiple DUIs</td>
+                            <td>15</td>
+                            <td>14.4%</td>
+                            <td>1.2 hrs</td>
+                        </tr>
+                        <tr>
+                            <td>Employment Verification Failed</td>
+                            <td>10</td>
+                            <td>9.6%</td>
+                            <td>3.5 hrs</td>
+                        </tr>
+                        <tr>
+                            <td>Other</td>
+                            <td>5</td>
+                            <td>4.8%</td>
+                            <td>2.1 hrs</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Report: Funnel Impact Prediction -->
+        <div class="report-content" id="report-2-1">
+            <div class="report-header">
+                <h2>Funnel Impact Prediction - What-If Analysis</h2>
+            </div>
+
+            <div style="background: #eff6ff; padding: 1.5rem; border-radius: 8px; margin-bottom: 2rem; border-left: 4px solid #3b82f6;">
+                <div style="font-weight: 600; color: #1e40af; margin-bottom: 0.5rem;">Scenario:</div>
+                <div style="color: #1e40af;">Change "Possession Misdemeanor > 10 years" from REVIEW to AUTO-CLEAR</div>
+            </div>
+
+            <div class="scenario-comparison">
+                <div class="scenario-card">
+                    <h3>Current State</h3>
+                    <div class="scenario-metric">
+                        <span class="scenario-metric-label">Manual Reviews/Month</span>
+                        <span class="scenario-metric-value">279</span>
+                    </div>
+                    <div class="scenario-metric">
+                        <span class="scenario-metric-label">Avg Review Time</span>
+                        <span class="scenario-metric-value">4.2 min</span>
+                    </div>
+                    <div class="scenario-metric">
+                        <span class="scenario-metric-label">Affected Cases</span>
+                        <span class="scenario-metric-value">43</span>
+                    </div>
+                    <div class="scenario-metric">
+                        <span class="scenario-metric-label">Clear Rate</span>
+                        <span class="scenario-metric-value">73%</span>
+                    </div>
+                </div>
+
+                <div class="scenario-card" style="border-top-color: #10b981;">
+                    <h3>Proposed Change</h3>
+                    <div class="scenario-metric">
+                        <span class="scenario-metric-label">Manual Reviews/Month</span>
+                        <span class="scenario-metric-value">
+                            236
+                            <span class="impact-badge impact-positive">-43</span>
+                        </span>
+                    </div>
+                    <div class="scenario-metric">
+                        <span class="scenario-metric-label">Avg Review Time</span>
+                        <span class="scenario-metric-value">
+                            4.2 min
+                            <span class="impact-badge" style="background: #e2e8f0; color: #64748b;">0</span>
+                        </span>
+                    </div>
+                    <div class="scenario-metric">
+                        <span class="scenario-metric-label">Affected Cases</span>
+                        <span class="scenario-metric-value">
+                            0
+                            <span class="impact-badge impact-positive">-43</span>
+                        </span>
+                    </div>
+                    <div class="scenario-metric">
+                        <span class="scenario-metric-label">Clear Rate</span>
+                        <span class="scenario-metric-value">
+                            76%
+                            <span class="impact-badge impact-positive">+3%</span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="insight-box">
+                <h4>✓ Predicted Impact</h4>
+                <ul>
+                    <li>This change would save approximately <strong>3 hours per week</strong> in manual adjudication time</li>
+                    <li>Increase eligible candidate pool by <strong>43 candidates/month</strong> (based on last 90 days of data)</li>
+                    <li>Improve overall clear rate from 73% to 76%</li>
+                    <li>Reduce average time-to-hire by approximately 1.2 days</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Report: Fair Chance Dashboard -->
+        <div class="report-content" id="report-3-0">
+            <div class="report-header">
+                <h2>Justice-Impacted Candidate Metrics</h2>
+                <select class="date-selector">
+                    <option>Current Quarter</option>
+                    <option>Last Quarter</option>
+                    <option>Last Year</option>
+                </select>
+            </div>
+
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <div class="metric-value">68</div>
+                    <div class="metric-label">Fair Chance Number</div>
+                    <div class="metric-change positive">▲ 12% from last quarter</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">284 / 1,435</div>
+                    <div class="metric-label">Candidates w/ Records</div>
+                    <div class="metric-value" style="font-size: 1.5rem; margin-top: 0.5rem;">20%</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">89 / 284</div>
+                    <div class="metric-label">Meets Hiring Requirements</div>
+                    <div class="metric-value" style="font-size: 1.5rem; margin-top: 0.5rem;">31%</div>
+                </div>
+            </div>
+
+            <div class="insight-box">
+                <h4>Key Insights</h4>
+                <ul>
+                    <li><strong>31% hire rate</strong> from justice-impacted candidates demonstrates program effectiveness</li>
+                    <li><strong>20% of total candidate pool</strong> has criminal records, indicating inclusive sourcing practices</li>
+                    <li><strong>12% quarter-over-quarter growth</strong> in Fair Chance Number shows improving performance</li>
+                    <li>This represents a positive trend in providing second chances while maintaining hiring standards</li>
+                </ul>
+            </div>
+
+            <div class="chart-container">
+                <div class="chart-title">Fair Chance Number Trend</div>
+                <div class="bar-chart">
+                    <div class="bar" style="height: 65%;">
+                        <span class="bar-value">52</span>
+                        <span class="bar-label">Q1 2025</span>
+                    </div>
+                    <div class="bar" style="height: 75%;">
+                        <span class="bar-value">57</span>
+                        <span class="bar-label">Q2 2025</span>
+                    </div>
+                    <div class="bar" style="height: 80%;">
+                        <span class="bar-value">61</span>
+                        <span class="bar-label">Q3 2025</span>
+                    </div>
+                    <div class="bar" style="height: 100%;">
+                        <span class="bar-value">68</span>
+                        <span class="bar-label">Q4 2025</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="chart-container">
+                <div class="chart-title">Offense Types for Hired Candidates</div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Offense Category</th>
+                            <th>Candidates</th>
+                            <th>Hired</th>
+                            <th>Hire Rate</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Misdemeanor (> 10 years)</td>
+                            <td>87</td>
+                            <td>34</td>
+                            <td>39%</td>
+                        </tr>
+                        <tr>
+                            <td>Non-Violent Felony (> 7 years)</td>
+                            <td>64</td>
+                            <td>23</td>
+                            <td>36%</td>
+                        </tr>
+                        <tr>
+                            <td>Traffic/DUI (> 5 years)</td>
+                            <td>52</td>
+                            <td>18</td>
+                            <td>35%</td>
+                        </tr>
+                        <tr>
+                            <td>Property Crime (> 10 years)</td>
+                            <td>43</td>
+                            <td>9</td>
+                            <td>21%</td>
+                        </tr>
+                        <tr>
+                            <td>Drug Possession (> 7 years)</td>
+                            <td>38</td>
+                            <td>5</td>
+                            <td>13%</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global state
+        let currentMainTab = 0;
+        let currentSubTabs = [0, 0, 0, 0]; // Track active sub-tab for each main category
+
+        function switchMainTab(tabIndex) {
+            // Update main tabs
+            const mainTabs = document.querySelectorAll('.main-tab');
+            mainTabs.forEach((tab, index) => {
+                tab.classList.toggle('active', index === tabIndex);
+            });
+
+            // Update sub-tabs visibility
+            const subTabs = document.querySelectorAll('.sub-tabs');
+            subTabs.forEach((tabs, index) => {
+                tabs.classList.toggle('active', index === tabIndex);
+            });
+
+            // Update current main tab
+            currentMainTab = tabIndex;
+
+            // Show the active report for this category
+            showActiveReport();
+        }
+
+        function switchReport(mainTabIndex, reportIndex) {
+            // Update sub-tab buttons
+            const subTabs = document.querySelectorAll(`#subtabs-${mainTabIndex} .sub-tab`);
+            subTabs.forEach((tab, index) => {
+                tab.classList.toggle('active', index === reportIndex);
+            });
+
+            // Update current sub-tab for this category
+            currentSubTabs[mainTabIndex] = reportIndex;
+
+            // Show the report
+            showActiveReport();
+        }
+
+        function showActiveReport() {
+            // Hide all reports
+            const allReports = document.querySelectorAll('.report-content');
+            allReports.forEach(report => {
+                report.classList.remove('active');
+            });
+
+            // Show the active report
+            const reportId = `report-${currentMainTab}-${currentSubTabs[currentMainTab]}`;
+            const activeReport = document.getElementById(reportId);
+            if (activeReport) {
+                activeReport.classList.add('active');
+            }
+        }
+
+        // Initialize - show first report
+        showActiveReport();
+
+        // TAT Drill-down functionality
+        let currentTATLevel = 'main';
+        let currentTATType = '';
+        let currentTATSubType = '';
+
+        function tatDrillDown(level, type) {
+            // Hide all level containers
+            document.querySelectorAll('[id^="tat-level-"]').forEach(el => {
+                el.style.display = 'none';
+            });
+
+            if (level === 'main') {
+                // Show main level
+                document.getElementById('tat-level-main').style.display = 'block';
+                document.getElementById('breadcrumb-level2').style.display = 'none';
+                document.getElementById('breadcrumb-level3').style.display = 'none';
+                currentTATLevel = 'main';
+                currentTATType = '';
+                currentTATSubType = '';
+            } else if (level === 'detail') {
+                // Show detail level for selected type
+                currentTATType = type;
+                currentTATLevel = 'detail';
+                currentTATSubType = '';
+                
+                const typeNames = {
+                    'criminal': 'Criminal Records',
+                    'employment': 'Employment Verification',
+                    'education': 'Education Verification',
+                    'mvr': 'MVR',
+                    'credit': 'Credit Check'
+                };
+                
+                document.getElementById('tat-level-' + type).style.display = 'block';
+                document.getElementById('breadcrumb-level2').style.display = 'inline';
+                document.getElementById('breadcrumb-level2').querySelector('span').textContent = typeNames[type];
+                document.getElementById('breadcrumb-level3').style.display = 'none';
+            } else if (level === 'jurisdiction') {
+                // Show jurisdiction level for selected sub-type
+                currentTATSubType = type;
+                currentTATLevel = 'jurisdiction';
+                
+                const subTypeNames = {
+                    'county': 'County Criminal',
+                    'federal': 'Federal Criminal',
+                    'statewide': 'Statewide Criminal'
+                };
+                
+                document.getElementById('tat-level-' + type + '-jurisdiction').style.display = 'block';
+                document.getElementById('breadcrumb-level3').style.display = 'inline';
+                document.getElementById('breadcrumb-level3').querySelector('span').textContent = subTypeNames[type];
+            }
+        }
+    </script>
+</body>
+</html>
